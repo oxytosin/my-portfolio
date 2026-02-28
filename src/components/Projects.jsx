@@ -39,68 +39,81 @@ const PROJECTS = [
 export default function Projects({ hoverCardRef, cursorRef }) {
   const nodesRef = useRef([]);
 
-  // Mobile scroll-activation — continuously tracks which project is
-  // closest to viewport centre and drives both the hover effect and
-  // the project card preview
+  // Mobile scroll-driven animation — continuous interpolation so colour
+  // flows smoothly between projects as you scroll (no binary snap).
   useEffect(() => {
     if (window.matchMedia('(pointer: fine)').matches) return;
 
     const nodes = nodesRef.current.filter(Boolean);
     if (!nodes.length) return;
 
-    let activeIndex = -1;
     let rafId = null;
 
-    const setArrow = (node, visible) => {
-      const arrow = node.querySelector('.project-arrow');
-      if (arrow) arrow.style.opacity = visible ? '1' : '0';
-    };
+    // smoothstep: s-curve easing for a natural feel
+    const smoothstep = t => t * t * (3 - 2 * t);
 
     const update = () => {
       rafId = null;
       const viewH = window.innerHeight;
       const center = viewH / 2;
+      // Activity falls to 0 when a node centre is this far from viewport centre
+      const threshold = viewH * 0.45;
 
-      let closest = -1;
-      let closestDist = Infinity;
-
-      nodes.forEach((node, i) => {
+      nodes.forEach(node => {
         const rect = node.getBoundingClientRect();
         const dist = Math.abs(center - (rect.top + rect.height / 2));
-        if (dist < closestDist) { closestDist = dist; closest = i; }
+        const raw = Math.max(0, 1 - dist / threshold);
+        const t = smoothstep(raw); // 0 = fully inactive, 1 = fully active
+
+        const title = node.querySelector('.project-title');
+        const arrow = node.querySelector('.project-arrow');
+        const meta  = node.querySelectorAll('.project-meta p');
+
+        if (title) {
+          // Colour: faint → white
+          const alpha = 0.25 + t * 0.75;
+          title.style.color = `rgba(255,255,255,${alpha.toFixed(3)})`;
+          // Letter-spacing: gentle expansion so it doesn't overflow
+          const ls = 0.1 + t * 0.12;
+          title.style.letterSpacing = `${ls.toFixed(3)}em`;
+        }
+
+        if (arrow) {
+          // Arrow only appears in the final 30% of the activity range
+          const arrowT = Math.max(0, (t - 0.7) / 0.3);
+          arrow.style.opacity = arrowT.toFixed(3);
+        }
+
+        meta.forEach(p => {
+          const a = 0.25 + t * 0.35;
+          p.style.color = `rgba(255,255,255,${a.toFixed(3)})`;
+        });
       });
-
-      const newActive = closestDist < viewH * 0.42 ? closest : -1;
-      if (newActive === activeIndex) return;
-
-      if (activeIndex >= 0 && nodes[activeIndex]) {
-        nodes[activeIndex].classList.remove('is-active');
-        setArrow(nodes[activeIndex], false);
-      }
-
-      activeIndex = newActive;
-
-      if (newActive >= 0 && nodes[newActive]) {
-        nodes[newActive].classList.add('is-active');
-        setArrow(nodes[newActive], true);
-      }
     };
 
     const onScroll = () => {
       if (!rafId) rafId = requestAnimationFrame(update);
     };
 
-    // scroll on main + touchmove on window — iOS Safari fires touchmove
-    // more reliably than scroll on overflow containers during momentum scroll
+    // scroll on main + touchmove on window for iOS Safari reliability
     const mainEl = document.querySelector('main');
     if (mainEl) mainEl.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('touchmove', onScroll, { passive: true });
-    update();
+    update(); // set initial state
 
     return () => {
       if (mainEl) mainEl.removeEventListener('scroll', onScroll);
       window.removeEventListener('touchmove', onScroll);
       if (rafId) cancelAnimationFrame(rafId);
+      // Reset inline styles
+      nodes.forEach(node => {
+        const title = node.querySelector('.project-title');
+        const arrow = node.querySelector('.project-arrow');
+        const meta  = node.querySelectorAll('.project-meta p');
+        if (title) { title.style.color = ''; title.style.letterSpacing = ''; }
+        if (arrow) arrow.style.opacity = '';
+        meta.forEach(p => { p.style.color = ''; });
+      });
     };
   }, [hoverCardRef]);
 

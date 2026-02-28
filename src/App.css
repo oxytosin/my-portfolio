@@ -723,7 +723,7 @@ footer {
     white-space: nowrap;
   }
 
-  /* Arrow: pulled into normal flow, hidden until JS sets opacity via inline style */
+  /* Arrow: pulled into normal flow — JS drives opacity continuously */
   .project-arrow {
     position: static;
     display: inline-block;
@@ -735,21 +735,9 @@ footer {
     transition: none;
   }
 
-  /* Scroll-activated hover effect */
-  .project-node.is-active .project-title {
-    color: #fff;
-    transform: none;
-    letter-spacing: 0.3em;
-    margin-left: 0;
-  }
-  .project-node.is-active .project-arrow {
-    opacity: 1;
-  }
-  .project-node.is-active .project-ordinal {
-    color: rgba(255, 255, 255, 0.5);
-  }
-  .project-node.is-active .project-meta p {
-    color: rgba(255, 255, 255, 0.55);
+  /* Disable CSS transitions so JS interpolation isn't fought by the browser */
+  .project-title {
+    transition: none;
   }
 
   .project-meta {
@@ -842,14 +830,9 @@ footer {
     margin-left: 0;
   }
 
-  .project-node.is-active .project-title {
-    letter-spacing: 0.2em;
-    margin-left: 0;
-  }
-
-  /* Ordinal numbers too close to edge on very small screens */
   .project-ordinal {
-    display: none;
+    left: 20px;
+    font-size: 0.5rem;
   }
 
   .about-wrapper {
