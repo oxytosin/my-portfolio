@@ -16,6 +16,7 @@ export default function App() {
   const nameRef = useRef(null);
   const mainRef = useRef(null);
   const scrollProgressRef = useRef(null);
+  const sendEmailRef = useRef(null);
 
   useFluidCanvas(fluidCanvasRef);
   useButterflyCanvas(butterflyCanvasRef, nameRef);
@@ -32,12 +33,42 @@ export default function App() {
     return () => window.removeEventListener('mousemove', onMove);
   }, []);
 
-  // Scroll: progress line + cursor hue shift
+  // Scroll: progress line + floating email + cursor hue shift
   useEffect(() => {
     const mainEl = mainRef.current;
     const progressLine = scrollProgressRef.current;
+    const emailBtn = sendEmailRef.current;
     const cursor = cursorRef.current;
     if (!mainEl) return;
+
+    // Floating email state machine
+    let isFloating = false;
+    let floatTimer = null;
+
+    function showFloating() {
+      if (isFloating || !emailBtn) return;
+      isFloating = true;
+      clearTimeout(floatTimer);
+      emailBtn.classList.add('is-transitioning-out');
+      floatTimer = setTimeout(() => {
+        emailBtn.classList.remove('is-transitioning-out');
+        emailBtn.classList.add('is-floating');
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          emailBtn.classList.add('is-visible');
+        }));
+      }, 350);
+    }
+
+    function hideFloating() {
+      if (!isFloating || !emailBtn) return;
+      isFloating = false;
+      clearTimeout(floatTimer);
+      emailBtn.classList.remove('is-visible');
+      emailBtn.classList.add('is-hiding');
+      floatTimer = setTimeout(() => {
+        emailBtn.classList.remove('is-floating', 'is-hiding');
+      }, 350);
+    }
 
     // Cursor hue shift — lerps between section accent colours
     const sections = [
@@ -69,6 +100,9 @@ export default function App() {
 
       if (progressLine) progressLine.style.height = progress + '%';
 
+      if (scrollTop > 80) showFloating();
+      else hideFloating();
+
       // Determine active section for hue
       if (cursor) {
         const scrollMid = scrollTop + window.innerHeight / 2;
@@ -91,6 +125,7 @@ export default function App() {
     mainEl.addEventListener('scroll', onScroll, { passive: true });
     return () => {
       mainEl.removeEventListener('scroll', onScroll);
+      clearTimeout(floatTimer);
       cancelAnimationFrame(hueRAF);
     };
   }, []);
@@ -102,7 +137,7 @@ export default function App() {
       <canvas ref={fluidCanvasRef} id="fluid-canvas" />
       <canvas ref={butterflyCanvasRef} id="butterfly-canvas" />
       <div ref={cursorRef} className="cursor" id="cursor" />
-      <Nav />
+      <Nav sendEmailRef={sendEmailRef} />
       <main ref={mainRef}>
         <Hero nameRef={nameRef} />
         <Projects hoverCardRef={hoverCardRef} cursorRef={cursorRef} />

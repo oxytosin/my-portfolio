@@ -9,24 +9,28 @@ const PROJECTS = [
     ordinal: '01',
     title: 'Digita',
     meta: ['Tax platform'],
+    description: 'Designing a tax platform for the UK market',
     image: digitaImg,
   },
   {
     ordinal: '02',
     title: 'Union Bank',
     meta: ['Mobile banking'],
+    description: 'Redesigning the mobile banking experience',
     image: unionBankImg,
   },
   {
     ordinal: '03',
     title: 'Deepview',
     meta: ['Website design'],
+    description: 'Website design',
     image: deepviewImg,
   },
   {
     ordinal: '04',
     title: 'Indeed AD',
     meta: ['UX research'],
+    description: 'UX research for the Adcentral to Salesforce migration',
     image: indeedLogoUrl,
     isLogo: true,
   },
@@ -34,6 +38,26 @@ const PROJECTS = [
 
 export default function Projects({ hoverCardRef, cursorRef }) {
   const nodesRef = useRef([]);
+
+  // Mobile scroll-activation — fires hover effect as each project
+  // enters the centre of the viewport on touch devices
+  useEffect(() => {
+    if (window.matchMedia('(pointer: fine)').matches) return;
+
+    const nodes = nodesRef.current.filter(Boolean);
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        entry.target.classList.toggle('is-active', entry.isIntersecting);
+      });
+    }, {
+      threshold: 0.55,
+      rootMargin: '-15% 0px -15% 0px',
+    });
+
+    nodes.forEach(node => observer.observe(node));
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     const nodes = nodesRef.current;
@@ -54,8 +78,7 @@ export default function Projects({ hoverCardRef, cursorRef }) {
         imgEl.classList.toggle('logo-mode', !!PROJECTS[index]?.isLogo);
         // Strip the arrow glyph from the displayed title
         titleEl.textContent = node.querySelector('.project-title').textContent.replace('↗', '').trim();
-        const metas = node.querySelectorAll('.project-meta p');
-        metaEl.textContent = Array.from(metas).map(p => p.textContent).join(' · ');
+        metaEl.textContent = PROJECTS[index]?.description ?? '';
 
         const rect = node.getBoundingClientRect();
         const cardWidth = 260;

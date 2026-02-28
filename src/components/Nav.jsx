@@ -5,7 +5,7 @@ const MENU_ITEMS = [
   { ordinal: '02', label: 'Get in Touch', href: 'mailto:tosin@example.com', external: false },
 ];
 
-export default function Nav() {
+export default function Nav({ sendEmailRef }) {
   const [isOpen, setIsOpen] = useState(false);
 
   // Close on ESC
@@ -15,7 +15,7 @@ export default function Nav() {
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
-  // Lock body scroll when open
+  // Lock body scroll when menu is open
   useEffect(() => {
     document.body.style.overflow = isOpen ? 'hidden' : '';
     return () => { document.body.style.overflow = ''; };
@@ -35,6 +35,32 @@ export default function Nav() {
           Tosin Folorunso
         </span>
 
+        {/* Desktop — LinkedIn + Get in Touch (hidden on mobile) */}
+        <div className="nav-desktop nav-right" style={{ display: 'flex', gap: '32px', alignItems: 'center' }}>
+          <a
+            href="https://linkedin.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="linkedin-link"
+          >
+            LinkedIn
+          </a>
+          <div style={{ display: 'grid', alignItems: 'center' }}>
+            <span className="send-email-ghost" style={{ gridArea: '1/1' }}>Get in Touch</span>
+            <a
+              ref={sendEmailRef}
+              href="mailto:tosin@example.com"
+              className="send-email-btn"
+              id="send-email-btn"
+              style={{ gridArea: '1/1' }}
+            >
+              <span className="btn-dot" />
+              Get in Touch
+            </a>
+          </div>
+        </div>
+
+        {/* Mobile — hamburger toggle (hidden on desktop) */}
         <button
           className={`menu-toggle${isOpen ? ' open' : ''}`}
           onClick={() => setIsOpen(o => !o)}
@@ -46,7 +72,7 @@ export default function Nav() {
         </button>
       </nav>
 
-      {/* Full-screen overlay */}
+      {/* Mobile overlay */}
       <div className={`menu-overlay${isOpen ? ' open' : ''}`} role="dialog" aria-modal="true">
         <div className="menu-overlay-links">
           {MENU_ITEMS.map((item) => (

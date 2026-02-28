@@ -62,17 +62,16 @@ export default function Footer() {
     return () => observer.disconnect();
   }, []);
 
-  // Rule hover — redraw path + wiggle words
+  // Rule hover — redraw path + wiggle words (desktop only)
   useEffect(() => {
     const rule = ruleRef.current;
     const path = pathRef.current;
     const words = wordRefs.current.filter(Boolean);
     if (!rule || !path) return;
 
-    let wiggleStart = null;
+    const isTouch = window.matchMedia('(pointer: coarse)').matches;
 
     const onEnter = () => {
-      // Reset and redraw
       path.style.transition = 'none';
       path.style.strokeDashoffset = '3000';
       requestAnimationFrame(() => requestAnimationFrame(() => {
@@ -81,7 +80,9 @@ export default function Footer() {
         path.style.stroke = 'rgba(255,255,255,0.5)';
       }));
 
-      wiggleStart = null;
+      if (isTouch) return;
+
+      let wiggleStart = null;
       function wiggleWords(ts) {
         if (!wiggleStart) wiggleStart = ts;
         const elapsed = (ts - wiggleStart) / 1000;
@@ -102,6 +103,7 @@ export default function Footer() {
 
     const onLeave = () => {
       path.style.stroke = 'rgba(255,255,255,0.18)';
+      if (isTouch) return;
       cancelAnimationFrame(wiggleRAFRef.current);
       words.forEach(w => {
         w.style.transition = 'transform 0.6s cubic-bezier(0.16,1,0.3,1), color 0.5s ease, letter-spacing 0.5s ease';
