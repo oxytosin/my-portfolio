@@ -723,16 +723,16 @@ footer {
     white-space: nowrap;
   }
 
-  /* Arrow: inline, hidden until active — no transform to avoid Safari nested-transform bugs */
+  /* Arrow: pulled into normal flow, hidden until JS sets opacity via inline style */
   .project-arrow {
     position: static;
     display: inline-block;
     opacity: 0;
     pointer-events: none;
     font-size: 1.4rem;
-    margin-left: 10px;
+    margin-left: 8px;
     transform: none;
-    transition: opacity 0.4s ease;
+    transition: none;
   }
 
   /* Scroll-activated hover effect */
@@ -839,7 +839,12 @@ footer {
 
   .project-title {
     letter-spacing: 0.1em;
-    margin-left: 0.1em;
+    margin-left: 0;
+  }
+
+  .project-node.is-active .project-title {
+    letter-spacing: 0.2em;
+    margin-left: 0;
   }
 
   /* Ordinal numbers too close to edge on very small screens */

@@ -46,11 +46,15 @@ export default function Projects({ hoverCardRef, cursorRef }) {
     if (window.matchMedia('(pointer: fine)').matches) return;
 
     const nodes = nodesRef.current.filter(Boolean);
-    const mainEl = document.querySelector('main');
-    if (!mainEl) return;
+    if (!nodes.length) return;
 
     let activeIndex = -1;
     let rafId = null;
+
+    const setArrow = (node, visible) => {
+      const arrow = node.querySelector('.project-arrow');
+      if (arrow) arrow.style.opacity = visible ? '1' : '0';
+    };
 
     const update = () => {
       rafId = null;
@@ -71,12 +75,14 @@ export default function Projects({ hoverCardRef, cursorRef }) {
 
       if (activeIndex >= 0 && nodes[activeIndex]) {
         nodes[activeIndex].classList.remove('is-active');
+        setArrow(nodes[activeIndex], false);
       }
 
       activeIndex = newActive;
 
       if (newActive >= 0 && nodes[newActive]) {
         nodes[newActive].classList.add('is-active');
+        setArrow(nodes[newActive], true);
       }
     };
 
@@ -84,11 +90,16 @@ export default function Projects({ hoverCardRef, cursorRef }) {
       if (!rafId) rafId = requestAnimationFrame(update);
     };
 
-    mainEl.addEventListener('scroll', onScroll, { passive: true });
-    update(); // run once on mount
+    // scroll on main + touchmove on window — iOS Safari fires touchmove
+    // more reliably than scroll on overflow containers during momentum scroll
+    const mainEl = document.querySelector('main');
+    if (mainEl) mainEl.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('touchmove', onScroll, { passive: true });
+    update();
 
     return () => {
-      mainEl.removeEventListener('scroll', onScroll);
+      if (mainEl) mainEl.removeEventListener('scroll', onScroll);
+      window.removeEventListener('touchmove', onScroll);
       if (rafId) cancelAnimationFrame(rafId);
     };
   }, [hoverCardRef]);
