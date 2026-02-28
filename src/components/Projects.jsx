@@ -177,7 +177,7 @@ export default function Projects({ hoverCardRef, cursorRef }) {
           <span className="project-ordinal">{project.ordinal}</span>
           <h2 className="project-title">
             {project.title}
-            <span className="project-arrow">↗</span>
+            <span className="project-arrow">{'↗\uFE0E'}</span>
           </h2>
           <div className="project-meta">
             {project.meta.map(m => <p key={m}>{m}</p>)}
