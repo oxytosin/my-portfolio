@@ -753,6 +753,7 @@ footer {
     text-transform: uppercase;
     color: rgba(255, 255, 255, 0.3);
     margin: 0;
+    text-align: center;
   }
 
   .project-ordinal {
@@ -831,8 +832,7 @@ footer {
   }
 
   .project-ordinal {
-    left: 20px;
-    font-size: 0.5rem;
+    display: none;
   }
 
   .about-wrapper {

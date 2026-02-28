@@ -39,80 +39,62 @@ const PROJECTS = [
 export default function Projects({ hoverCardRef, cursorRef }) {
   const nodesRef = useRef([]);
 
-  // Mobile scroll-driven animation — continuous interpolation so colour
-  // flows smoothly between projects as you scroll (no binary snap).
+  // Mobile scroll-driven animation.
+  // Uses a continuous rAF loop rather than scroll/touchmove events —
+  // getBoundingClientRect() always reflects the current painted position
+  // so this works on iOS Safari regardless of how the scroll is handled.
   useEffect(() => {
     if (window.matchMedia('(pointer: fine)').matches) return;
 
     const nodes = nodesRef.current.filter(Boolean);
     if (!nodes.length) return;
 
-    let rafId = null;
+    // Cache per-node elements once
+    const items = nodes.map(node => ({
+      node,
+      title: node.querySelector('.project-title'),
+      arrow: node.querySelector('.project-arrow'),
+      meta:  [...node.querySelectorAll('.project-meta p')],
+    }));
 
-    // smoothstep: s-curve easing for a natural feel
     const smoothstep = t => t * t * (3 - 2 * t);
 
-    const update = () => {
-      rafId = null;
-      const viewH = window.innerHeight;
-      const center = viewH / 2;
-      // Activity falls to 0 when a node centre is this far from viewport centre
+    let rafId;
+    const loop = () => {
+      const viewH   = window.innerHeight;
+      const center  = viewH / 2;
       const threshold = viewH * 0.45;
 
-      nodes.forEach(node => {
+      items.forEach(({ node, title, arrow, meta }) => {
         const rect = node.getBoundingClientRect();
         const dist = Math.abs(center - (rect.top + rect.height / 2));
-        const raw = Math.max(0, 1 - dist / threshold);
-        const t = smoothstep(raw); // 0 = fully inactive, 1 = fully active
-
-        const title = node.querySelector('.project-title');
-        const arrow = node.querySelector('.project-arrow');
-        const meta  = node.querySelectorAll('.project-meta p');
+        const t    = smoothstep(Math.max(0, 1 - dist / threshold));
 
         if (title) {
-          // Colour: faint → white
-          const alpha = 0.25 + t * 0.75;
-          title.style.color = `rgba(255,255,255,${alpha.toFixed(3)})`;
-          // Letter-spacing: gentle expansion so it doesn't overflow
-          const ls = 0.1 + t * 0.12;
-          title.style.letterSpacing = `${ls.toFixed(3)}em`;
+          title.style.color         = `rgba(255,255,255,${(0.25 + t * 0.75).toFixed(3)})`;
+          title.style.letterSpacing = `${(0.1 + t * 0.12).toFixed(3)}em`;
         }
-
         if (arrow) {
-          // Arrow only appears in the final 30% of the activity range
-          const arrowT = Math.max(0, (t - 0.7) / 0.3);
-          arrow.style.opacity = arrowT.toFixed(3);
+          // Fade in once t passes 0.5 so it only shows near centre
+          arrow.style.opacity = Math.max(0, (t - 0.5) / 0.5).toFixed(3);
         }
-
         meta.forEach(p => {
-          const a = 0.25 + t * 0.35;
-          p.style.color = `rgba(255,255,255,${a.toFixed(3)})`;
+          p.style.color         = `rgba(255,255,255,${(0.25 + t * 0.35).toFixed(3)})`;
+          p.style.letterSpacing = `${(0.2 + t * 0.15).toFixed(3)}em`;
         });
       });
+
+      rafId = requestAnimationFrame(loop);
     };
 
-    const onScroll = () => {
-      if (!rafId) rafId = requestAnimationFrame(update);
-    };
-
-    // scroll on main + touchmove on window for iOS Safari reliability
-    const mainEl = document.querySelector('main');
-    if (mainEl) mainEl.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('touchmove', onScroll, { passive: true });
-    update(); // set initial state
+    rafId = requestAnimationFrame(loop);
 
     return () => {
-      if (mainEl) mainEl.removeEventListener('scroll', onScroll);
-      window.removeEventListener('touchmove', onScroll);
-      if (rafId) cancelAnimationFrame(rafId);
-      // Reset inline styles
-      nodes.forEach(node => {
-        const title = node.querySelector('.project-title');
-        const arrow = node.querySelector('.project-arrow');
-        const meta  = node.querySelectorAll('.project-meta p');
+      cancelAnimationFrame(rafId);
+      items.forEach(({ title, arrow, meta }) => {
         if (title) { title.style.color = ''; title.style.letterSpacing = ''; }
         if (arrow) arrow.style.opacity = '';
-        meta.forEach(p => { p.style.color = ''; });
+        meta.forEach(p => { p.style.color = ''; p.style.letterSpacing = ''; });
       });
     };
   }, [hoverCardRef]);
