@@ -723,13 +723,14 @@ footer {
     white-space: nowrap;
   }
 
-  /* Arrow: in normal flow, hidden via visibility (not opacity).
-     visibility toggle works reliably on Safari; opacity on inline-flex
-     children has a known rendering bug on iOS. */
+  /* Arrow: in normal flow, hidden via visibility.
+     opacity MUST be 1 here to override the desktop rule (opacity:0) —
+     visibility alone does the hiding/showing on mobile. */
   .project-arrow {
     position: static;
     display: inline-block;
     visibility: hidden;
+    opacity: 1;
     pointer-events: none;
     font-size: 1.4rem;
     margin-left: 8px;
