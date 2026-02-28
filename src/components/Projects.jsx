@@ -44,7 +44,9 @@ export default function Projects({ hoverCardRef, cursorRef }) {
   // getBoundingClientRect() always reflects the current painted position
   // so this works on iOS Safari regardless of how the scroll is handled.
   useEffect(() => {
-    if (window.matchMedia('(pointer: fine)').matches) return;
+    // navigator.maxTouchPoints is the most reliable touch-device check —
+    // pointer:fine can return true on iPhone when a BT peripheral is paired
+    if (!navigator.maxTouchPoints && !('ontouchstart' in window)) return;
 
     const nodes = nodesRef.current.filter(Boolean);
     if (!nodes.length) return;
@@ -74,10 +76,8 @@ export default function Projects({ hoverCardRef, cursorRef }) {
           title.style.color         = `rgba(255,255,255,${(0.25 + t * 0.75).toFixed(3)})`;
           title.style.letterSpacing = `${(0.1 + t * 0.12).toFixed(3)}em`;
         }
-        if (arrow) {
-          // Fade in once t passes 0.5 so it only shows near centre
-          arrow.style.opacity = Math.max(0, (t - 0.5) / 0.5).toFixed(3);
-        }
+        // visibility toggle avoids the Safari inline-flex opacity bug
+        if (arrow) arrow.style.visibility = t > 0.5 ? 'visible' : 'hidden';
         meta.forEach(p => {
           p.style.color         = `rgba(255,255,255,${(0.25 + t * 0.35).toFixed(3)})`;
           p.style.letterSpacing = `${(0.2 + t * 0.15).toFixed(3)}em`;
@@ -93,7 +93,7 @@ export default function Projects({ hoverCardRef, cursorRef }) {
       cancelAnimationFrame(rafId);
       items.forEach(({ title, arrow, meta }) => {
         if (title) { title.style.color = ''; title.style.letterSpacing = ''; }
-        if (arrow) arrow.style.opacity = '';
+        if (arrow) arrow.style.visibility = '';
         meta.forEach(p => { p.style.color = ''; p.style.letterSpacing = ''; });
       });
     };
