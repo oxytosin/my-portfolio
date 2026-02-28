@@ -719,22 +719,32 @@ footer {
   .project-title {
     font-size: clamp(2.2rem, 10vw, 3rem);
     letter-spacing: 0.15em;
-    margin-left: 0.15em;
+    margin-left: 0;
+    white-space: nowrap;
   }
 
+  /* Arrow: inline so it never clips, hidden until active */
   .project-arrow {
-    display: none;
+    position: static;
+    display: inline-block;
+    opacity: 0;
+    pointer-events: none;
+    font-size: 1.4rem;
+    margin-left: 10px;
+    transform: translate(-6px, 4px);
+    transition: opacity 0.4s ease, transform 0.4s var(--transition-curve);
   }
 
-  /* Scroll-activated hover effect on touch devices */
+  /* Scroll-activated hover effect — matches desktop hover exactly */
   .project-node.is-active .project-title {
     color: #fff;
-    transform: scale(1.04);
+    transform: scale(1.05);
+    letter-spacing: 0.3em;
+    margin-left: 0;
   }
   .project-node.is-active .project-arrow {
-    display: inline-block;
     opacity: 1;
-    transform: translateY(-50%) translate(0px, 0px);
+    transform: translate(0, 0);
   }
   .project-node.is-active .project-ordinal {
     color: rgba(255, 255, 255, 0.5);

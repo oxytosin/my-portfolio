@@ -8,8 +8,8 @@ const PROJECTS = [
   {
     ordinal: '01',
     title: 'Digita',
-    meta: ['Tax platform'],
-    description: 'Designing a tax platform for the UK market',
+    meta: ['Tax software'],
+    description: 'Designing a tax software for the UK market',
     image: digitaImg,
   },
   {
@@ -39,25 +39,59 @@ const PROJECTS = [
 export default function Projects({ hoverCardRef, cursorRef }) {
   const nodesRef = useRef([]);
 
-  // Mobile scroll-activation — fires hover effect as each project
-  // enters the centre of the viewport on touch devices
+  // Mobile scroll-activation — continuously tracks which project is
+  // closest to viewport centre and drives both the hover effect and
+  // the project card preview
   useEffect(() => {
     if (window.matchMedia('(pointer: fine)').matches) return;
 
     const nodes = nodesRef.current.filter(Boolean);
+    const mainEl = document.querySelector('main');
+    if (!mainEl) return;
 
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        entry.target.classList.toggle('is-active', entry.isIntersecting);
+    let activeIndex = -1;
+    let rafId = null;
+
+    const update = () => {
+      rafId = null;
+      const viewH = window.innerHeight;
+      const center = viewH / 2;
+
+      let closest = -1;
+      let closestDist = Infinity;
+
+      nodes.forEach((node, i) => {
+        const rect = node.getBoundingClientRect();
+        const dist = Math.abs(center - (rect.top + rect.height / 2));
+        if (dist < closestDist) { closestDist = dist; closest = i; }
       });
-    }, {
-      threshold: 0.55,
-      rootMargin: '-15% 0px -15% 0px',
-    });
 
-    nodes.forEach(node => observer.observe(node));
-    return () => observer.disconnect();
-  }, []);
+      const newActive = closestDist < viewH * 0.42 ? closest : -1;
+      if (newActive === activeIndex) return;
+
+      if (activeIndex >= 0 && nodes[activeIndex]) {
+        nodes[activeIndex].classList.remove('is-active');
+      }
+
+      activeIndex = newActive;
+
+      if (newActive >= 0 && nodes[newActive]) {
+        nodes[newActive].classList.add('is-active');
+      }
+    };
+
+    const onScroll = () => {
+      if (!rafId) rafId = requestAnimationFrame(update);
+    };
+
+    mainEl.addEventListener('scroll', onScroll, { passive: true });
+    update(); // run once on mount
+
+    return () => {
+      mainEl.removeEventListener('scroll', onScroll);
+      if (rafId) cancelAnimationFrame(rafId);
+    };
+  }, [hoverCardRef]);
 
   useEffect(() => {
     const nodes = nodesRef.current;

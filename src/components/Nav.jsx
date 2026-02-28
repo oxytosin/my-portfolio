@@ -84,9 +84,7 @@ export default function Nav({ sendEmailRef }) {
               rel={item.external ? 'noopener noreferrer' : undefined}
               onClick={() => setIsOpen(false)}
             >
-              <span className="menu-overlay-ordinal">{item.ordinal}</span>
               <span className="menu-overlay-label">{item.label}</span>
-              <span className="menu-overlay-arrow">↗</span>
             </a>
           ))}
         </div>
