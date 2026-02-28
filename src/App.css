@@ -723,7 +723,7 @@ footer {
     white-space: nowrap;
   }
 
-  /* Arrow: inline so it never clips, hidden until active */
+  /* Arrow: inline, hidden until active — no transform to avoid Safari nested-transform bugs */
   .project-arrow {
     position: static;
     display: inline-block;
@@ -731,20 +731,19 @@ footer {
     pointer-events: none;
     font-size: 1.4rem;
     margin-left: 10px;
-    transform: translate(-6px, 4px);
-    transition: opacity 0.4s ease, transform 0.4s var(--transition-curve);
+    transform: none;
+    transition: opacity 0.4s ease;
   }
 
-  /* Scroll-activated hover effect — matches desktop hover exactly */
+  /* Scroll-activated hover effect */
   .project-node.is-active .project-title {
     color: #fff;
-    transform: scale(1.05);
+    transform: none;
     letter-spacing: 0.3em;
     margin-left: 0;
   }
   .project-node.is-active .project-arrow {
     opacity: 1;
-    transform: translate(0, 0);
   }
   .project-node.is-active .project-ordinal {
     color: rgba(255, 255, 255, 0.5);
